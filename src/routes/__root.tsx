@@ -7,8 +7,8 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import * as React from 'react'
-import { DefaultCatchBoundary } from '~/components/DefaultCatchBoundary'
-import { NotFound } from '~/components/NotFound'
+import { DefaultCatchBoundary } from '~/shared/components/DefaultCatchBoundary'
+import { NotFound } from '~/shared/components/NotFound'
 import appCss from '~/styles/app.css?url'
 
 export const Route = createRootRoute({

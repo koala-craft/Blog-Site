@@ -1,30 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { getSupabase } from '~/lib/supabase'
+import { fetchTasks } from '~/features/tasks/api'
 
 export const Route = createFileRoute('/tasks')({
   component: TasksPage,
-  loader: async () => {
-    try {
-      const supabase = getSupabase()
-      const { data } = supabase
-        ? await supabase
-            .from('tasks')
-            .select('*')
-            .eq('visibility', 'public')
-            .order('created_at', { ascending: false })
-        : { data: null }
-      const tasks = data ?? []
-      const summary = {
-        total: tasks.length,
-        done: tasks.filter((t) => t.status === 'done').length,
-        doing: tasks.filter((t) => t.status === 'doing').length,
-        todo: tasks.filter((t) => t.status === 'todo').length,
-      }
-      return { tasks, summary }
-    } catch {
-      return { tasks: [], summary: { total: 0, done: 0, doing: 0, todo: 0 } }
-    }
-  },
+  loader: () => fetchTasks(),
 })
 
 function TasksPage() {

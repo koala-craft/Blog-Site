@@ -1,29 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { getArticles, getScraps } from '~/lib/content.server'
-import { getSupabase } from '~/lib/supabase'
+import { getArticles } from '~/features/articles/api'
+import { getScraps } from '~/features/scraps/api'
+import { fetchTaskSummary } from '~/features/tasks/api'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
   loader: async () => {
-    const [articles, scraps] = await Promise.all([
+    const [articles, scraps, taskSummary] = await Promise.all([
       getArticles(),
       getScraps(),
+      fetchTaskSummary(),
     ])
-    let taskSummary = { total: 0, done: 0 }
-    try {
-      const supabase = getSupabase()
-      const { data } = supabase
-        ? await supabase.from('tasks').select('status').eq('visibility', 'public')
-        : { data: null }
-      if (data) {
-        taskSummary = {
-          total: data.length,
-          done: data.filter((t) => t.status === 'done').length,
-        }
-      }
-    } catch {
-      // Supabase 未設定時
-    }
     return { articles, scraps, taskSummary }
   },
 })

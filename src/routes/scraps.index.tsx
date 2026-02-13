@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { getScraps } from '~/lib/content.server'
+import { getScraps } from '~/features/scraps/api'
 
 export const Route = createFileRoute('/scraps/')({
   component: ScrapsIndex,
-  loader: () => getScraps({}),
+  loader: () => getScraps(),
 })
 
 function ScrapsIndex() {

@@ -56,17 +56,25 @@ http://localhost:3000 でアクセス可能。
 
 ## プロジェクト構成
 
+**ディレクトリ設計**: ハイブリッド feature-based。ルートは `routes/` に維持し、ロジック・コンポーネントを feature 単位で分離する。
+
 ```
 obsidian-log/
-├── content/          # 開発用モック（articles, scraps）
-├── docs/             # 要件定義書・運用手順書
+├── content/              # 開発用モック（articles, scraps）
+├── docs/                 # 要件定義書・運用手順書
 ├── src/
-│   ├── lib/          # Supabase クライアント、コンテンツ取得
-│   ├── routes/       # ページ（ファイルベースルーティング）
-│   └── components/
+│   ├── features/        # 機能単位のモジュール
+│   │   ├── articles/    # 記事関連（API、型、コンポーネント）
+│   │   ├── scraps/      # スクラップ関連
+│   │   ├── tasks/       # タスク関連
+│   │   └── admin/       # 管理画面関連
+│   ├── shared/          # 共通
+│   │   ├── lib/         # Supabase クライアント等
+│   │   └── components/  # 共通コンポーネント
+│   └── routes/          # ルート定義（ファイルベースルーティング）
 ├── supabase/
-│   └── migrations/   # DB マイグレーション
-└── vercel.json       # セキュリティヘッダー等
+│   └── migrations/     # DB マイグレーション
+└── vercel.json          # セキュリティヘッダー等
 ```
 
 ## ルーティング

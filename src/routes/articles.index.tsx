@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { getArticles } from '~/lib/content.server'
+import { getArticles } from '~/features/articles/api'
 
 export const Route = createFileRoute('/articles/')({
   component: ArticlesIndex,

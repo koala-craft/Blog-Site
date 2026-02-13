@@ -1,7 +1,8 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { getScrap } from '~/lib/content.server'
+import remarkBreaks from 'remark-breaks'
+import { getScrap } from '~/features/scraps/api'
 
 export const Route = createFileRoute('/scraps/$slug')({
   component: ScrapDetail,
@@ -40,14 +41,14 @@ function CommentBlock({
 }) {
   return (
     <div className="border-l-2 border-zinc-600 pl-4">
-      <div className="prose prose-invert max-w-none">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      <div className="prose prose-invert prose-zinc prose-sm max-w-none prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline">
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
           {comment.body_markdown}
         </ReactMarkdown>
       </div>
       {comment.children?.map((c, i) => (
-        <div key={i} className="ml-4 mt-2">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <div key={i} className="ml-4 mt-2 prose prose-invert prose-zinc prose-sm max-w-none prose-a:text-cyan-400">
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
             {c.body_markdown}
           </ReactMarkdown>
         </div>
