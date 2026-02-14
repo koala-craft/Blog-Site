@@ -162,7 +162,7 @@ function ScrapsIndex() {
                   const preview = getScrapPreview(s)
                   return (
                     <li key={s.slug}>
-                      <div className="rounded-lg border border-zinc-700/80 bg-zinc-900/50 p-5 transition hover:border-cyan-500/40 hover:bg-zinc-800/60">
+                      <div className="rounded-lg border border-zinc-700/80 bg-zinc-900/50 p-5">
                         <Link
                           to="/scraps/$slug"
                           params={{ slug: s.slug }}

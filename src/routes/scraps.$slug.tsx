@@ -127,7 +127,7 @@ function CommentBlock({
     <div
       className={
         isParent
-          ? 'rounded-lg border border-zinc-700/80 bg-zinc-900/50 p-5 transition hover:border-cyan-500/40 hover:bg-zinc-800/60'
+          ? 'rounded-lg border border-zinc-700/80 bg-zinc-900/50 p-5'
           : 'ml-4 pl-5 border-l-2 border-zinc-600/80 py-4'
       }
     >
