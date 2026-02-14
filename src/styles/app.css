@@ -54,6 +54,16 @@
   background: rgb(113 113 122);
 }
 
+/* Hero: prefers-reduced-motion の場合は動画を非表示 */
+@media (prefers-reduced-motion: reduce) {
+  .hero-video-backdrop {
+    display: none !important;
+  }
+  .hero-scroll-indicator svg {
+    animation: none !important;
+  }
+}
+
 /* トップページ TopCard: 横スクロールバー非表示 */
 .topcard-scroll {
   scrollbar-width: none !important;

@@ -3,6 +3,32 @@ import { createServerFn } from '@tanstack/react-start'
 const FETCH_TIMEOUT_MS = 5000
 const MAX_HTML_LENGTH = 100_000
 
+/** SSRF対策: プライベート・内部IP・localhost をブロック */
+function isBlockedHost(hostname: string): boolean {
+  const lower = hostname.toLowerCase()
+  if (lower === 'localhost' || lower.endsWith('.localhost')) return true
+  if (lower === '0.0.0.0') return true
+
+  // IPv4
+  const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/)
+  if (ipv4Match) {
+    const [, a, b, c] = ipv4Match.map(Number)
+    if (a === 127) return true // 127.0.0.0/8
+    if (a === 10) return true // 10.0.0.0/8
+    if (a === 172 && b >= 16 && b <= 31) return true // 172.16.0.0/12
+    if (a === 192 && b === 168) return true // 192.168.0.0/16
+    if (a === 169 && b === 254) return true // 169.254.0.0/16
+    if (a === 0) return true
+  }
+
+  // IPv6
+  if (hostname === '::1' || hostname === '[::1]') return true
+  if (hostname.startsWith('fe80:') || hostname.startsWith('[fe80:')) return true // link-local
+  if (hostname.startsWith('fd') || hostname.startsWith('[fd')) return true // unique local
+
+  return false
+}
+
 function decodeHtmlEntities(str: string): string {
   return str
     .replace(/&amp;/g, '&')
@@ -89,6 +115,9 @@ export const fetchPageMetadata = createServerFn({ method: 'GET' })
       if (!['http:', 'https:'].includes(parsed.protocol)) {
         return { title: null, image: null }
       }
+      if (isBlockedHost(parsed.hostname)) {
+        return { title: null, image: null }
+      }
 
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
@@ -111,7 +140,15 @@ export const fetchPageMetadata = createServerFn({ method: 'GET' })
       const html = (await res.text()).slice(0, MAX_HTML_LENGTH)
       const baseUrl = res.url || url
       const title = extractTitle(html)
-      const image = extractImage(html, baseUrl)
+      let image = extractImage(html, baseUrl)
+      if (image) {
+        try {
+          const imgHost = new URL(image).hostname
+          if (isBlockedHost(imgHost)) image = null
+        } catch {
+          image = null
+        }
+      }
       return { title, image }
     } catch {
       return { title: null, image: null }

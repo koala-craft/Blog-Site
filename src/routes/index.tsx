@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useState } from 'react'
 import { BookOpen, FileText } from 'lucide-react'
 import { SiZenn } from 'react-icons/si'
 import { getArticles } from '~/features/articles/api'
@@ -8,6 +9,7 @@ import { getSiteHeader } from '~/features/admin/siteConfig'
 import { parseScrapTitle } from '~/features/scraps/parseScrapTitle'
 import { BlogCard } from '~/shared/components/BlogCard'
 import { ContactCTA } from '~/shared/components/ContactCTA'
+import { Hero } from '~/shared/components/Hero'
 import { TopCard } from '~/shared/components/TopCard'
 
 const DEFAULT_TITLE = 'Obsidian Log'
@@ -32,30 +34,27 @@ export const Route = createFileRoute('/')({
   },
 })
 
+type ZennTab = 'articles' | 'scraps'
+
 function HomePage() {
   const { articles, scraps, blogPosts, siteTitle, siteSubtitle } =
     Route.useLoaderData()
+  const [zennTab, setZennTab] = useState<ZennTab>('articles')
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <header className="mb-12 lg:mb-16">
-          <h1 className="text-xl font-bold tracking-tight text-zinc-100">
-            {siteTitle}
-          </h1>
-          <p className="mt-2 text-zinc-500 text-sm sm:text-base">
-            {siteSubtitle}
-          </p>
-        </header>
+      <Hero title={siteTitle} subtitle={siteSubtitle} />
 
+      <div id="main-content" className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 scroll-mt-16">
         {/* ブログセクション見出し */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-zinc-200 tracking-tight">Blog</h2>
           <Link
             to="/blog"
-            className="text-sm text-zinc-500 hover:text-cyan-400 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-zinc-400 border border-zinc-600 hover:border-cyan-500/50 hover:text-cyan-400 transition-colors"
           >
-            View all →
+            See All
+            <span aria-hidden>→</span>
           </Link>
         </div>
 
@@ -121,116 +120,158 @@ function HomePage() {
           <p className="text-zinc-600 text-sm py-6 mb-16">ブログがありません</p>
         )}
 
-        {/* Zenn 投稿エリア */}
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 overflow-hidden">
-          <div className="flex items-center gap-3 px-5 sm:px-6 py-4 border-b border-zinc-800/80 bg-zinc-900/50">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#3ea8ff]/15 text-[#3ea8ff]">
-              <SiZenn className="w-6 h-6" aria-hidden />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-zinc-200">Zenn</h2>
-              <p className="text-xs text-zinc-500">技術記事・スクラップ</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:divide-x lg:divide-zinc-800/80">
-          <section className="min-w-0 p-5 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400">
-                  <BookOpen className="w-4 h-4" aria-hidden />
+        {/* Zenn 投稿エリア（横幅50%・タブ切り替え） */}
+        <div className="w-full lg:w-1/2 lg:max-w-[48rem]">
+          <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 overflow-hidden">
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-zinc-800/80 bg-zinc-900/50">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#3ea8ff]/15 text-[#3ea8ff]">
+                  <SiZenn className="w-5 h-5" aria-hidden />
                 </div>
-                <h3 className="text-base font-semibold text-zinc-200">Articles</h3>
+                <h2 className="text-base font-semibold text-zinc-200">Zenn</h2>
               </div>
-              <Link
-                to="/articles"
-                className="text-sm text-zinc-500 hover:text-cyan-400 transition-colors shrink-0"
+              <div
+                className="flex rounded-lg bg-zinc-800/80 p-0.5"
+                role="tablist"
+                aria-label="Zenn コンテンツ切り替え"
               >
-                View all →
-              </Link>
-            </div>
-            <ul className="space-y-2">
-              {articles.slice(0, 5).map((a) => (
-                <TopCard
-                  key={a.slug}
-                  to="/articles/$slug"
-                  params={{ slug: a.slug }}
-                  ariaLabel={`記事「${a.title}」を読む`}
-                  title={a.title}
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={zennTab === 'articles'}
+                  aria-controls="zenn-articles-panel"
+                  id="zenn-articles-tab"
+                  onClick={() => setZennTab('articles')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    zennTab === 'articles'
+                      ? 'bg-amber-500/15 text-amber-400'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
                 >
-                  {a.tags.map((t) => (
-                    <Link
-                      key={t}
-                      to="/articles"
-                      search={{ tag: t }}
-                      className="pointer-events-auto px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-500 hover:bg-zinc-700/60 hover:text-zinc-300 text-xs"
-                    >
-                      {t}
-                    </Link>
-                  ))}
-                  {a.tags.length > 0 && <span className="text-zinc-600">·</span>}
-                  <span>{a.createdAt}</span>
-                </TopCard>
-              ))}
-              {articles.length === 0 && (
-                <li className="text-zinc-600 text-sm py-6">記事がありません</li>
-              )}
-            </ul>
-          </section>
-
-          <section className="min-w-0 p-5 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400">
+                  <BookOpen className="w-4 h-4" aria-hidden />
+                  Articles
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={zennTab === 'scraps'}
+                  aria-controls="zenn-scraps-panel"
+                  id="zenn-scraps-tab"
+                  onClick={() => setZennTab('scraps')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    zennTab === 'scraps'
+                      ? 'bg-emerald-500/15 text-emerald-400'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
                   <FileText className="w-4 h-4" aria-hidden />
-                </div>
-                <h3 className="text-base font-semibold text-zinc-200">Scraps</h3>
+                  Scraps
+                </button>
               </div>
-              <Link
-                to="/scraps"
-                className="text-sm text-zinc-500 hover:text-cyan-400 transition-colors shrink-0"
-              >
-                View all →
-              </Link>
             </div>
-            <ul className="space-y-2">
-              {scraps.slice(0, 5).map((s) => {
-                const { displayTitle, tags } = parseScrapTitle(s.title)
-                return (
-                  <TopCard
-                    key={s.slug}
-                    to="/scraps/$slug"
-                    params={{ slug: s.slug }}
-                    ariaLabel={`スクラップ「${displayTitle || s.title}」を読む`}
-                    title={displayTitle || s.title}
-                  >
-                    {tags.map((t) => (
-                      <Link
-                        key={t}
-                        to="/scraps"
-                        search={{ tag: t }}
-                        className="pointer-events-auto px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-500 hover:bg-zinc-700/60 hover:text-zinc-300 text-xs"
+            <div className="p-4 sm:p-5">
+              {zennTab === 'articles' && (
+                <div
+                  id="zenn-articles-panel"
+                  role="tabpanel"
+                  aria-labelledby="zenn-articles-tab"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-zinc-500">技術記事</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {articles.slice(0, 5).map((a) => (
+                      <TopCard
+                        key={a.slug}
+                        to="/articles/$slug"
+                        params={{ slug: a.slug }}
+                        ariaLabel={`記事「${a.title}」を読む`}
+                        title={a.title}
                       >
-                        {t}
-                      </Link>
+                        {a.tags.map((t) => (
+                          <Link
+                            key={t}
+                            to="/articles"
+                            search={{ tag: t }}
+                            className="pointer-events-auto px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-500 hover:bg-zinc-700/60 hover:text-zinc-300 text-xs"
+                          >
+                            {t}
+                          </Link>
+                        ))}
+                        {a.tags.length > 0 && <span className="text-zinc-600">·</span>}
+                        <span>{a.createdAt}</span>
+                      </TopCard>
                     ))}
-                    {tags.length > 0 && <span className="text-zinc-600">·</span>}
-                    <span>{s.created_at}</span>
-                    <span className="text-zinc-600">·</span>
-                    <span>コメント {s.comments.length}件</span>
-                    {s.comments[0]?.author && (
-                      <>
-                        <span className="text-zinc-600">·</span>
-                        <span>by {s.comments[0].author}</span>
-                      </>
+                    {articles.length === 0 && (
+                      <li className="text-zinc-600 text-sm py-6">記事がありません</li>
                     )}
-                  </TopCard>
-                )
-              })}
-              {scraps.length === 0 && (
-                <li className="text-zinc-600 text-sm py-6">スクラップがありません</li>
+                  </ul>
+                  <Link
+                    to="/articles"
+                    className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-zinc-700 text-sm font-medium text-zinc-400 hover:border-amber-500/50 hover:text-amber-400 transition-colors"
+                  >
+                    すべての記事を見る
+                    <span aria-hidden>→</span>
+                  </Link>
+                </div>
               )}
-            </ul>
-          </section>
+              {zennTab === 'scraps' && (
+                <div
+                  id="zenn-scraps-panel"
+                  role="tabpanel"
+                  aria-labelledby="zenn-scraps-tab"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-zinc-500">スクラップ</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {scraps.slice(0, 5).map((s) => {
+                      const { displayTitle, tags } = parseScrapTitle(s.title)
+                      return (
+                        <TopCard
+                          key={s.slug}
+                          to="/scraps/$slug"
+                          params={{ slug: s.slug }}
+                          ariaLabel={`スクラップ「${displayTitle || s.title}」を読む`}
+                          title={displayTitle || s.title}
+                        >
+                          {tags.map((t) => (
+                            <Link
+                              key={t}
+                              to="/scraps"
+                              search={{ tag: t }}
+                              className="pointer-events-auto px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-500 hover:bg-zinc-700/60 hover:text-zinc-300 text-xs"
+                            >
+                              {t}
+                            </Link>
+                          ))}
+                          {tags.length > 0 && <span className="text-zinc-600">·</span>}
+                          <span>{s.created_at}</span>
+                          <span className="text-zinc-600">·</span>
+                          <span>コメント {s.comments.length}件</span>
+                          {s.comments[0]?.author && (
+                            <>
+                              <span className="text-zinc-600">·</span>
+                              <span>by {s.comments[0].author}</span>
+                            </>
+                          )}
+                        </TopCard>
+                      )
+                    })}
+                    {scraps.length === 0 && (
+                      <li className="text-zinc-600 text-sm py-6">スクラップがありません</li>
+                    )}
+                  </ul>
+                  <Link
+                    to="/scraps"
+                    className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-zinc-700 text-sm font-medium text-zinc-400 hover:border-emerald-500/50 hover:text-emerald-400 transition-colors"
+                  >
+                    すべてのスクラップを見る
+                    <span aria-hidden>→</span>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

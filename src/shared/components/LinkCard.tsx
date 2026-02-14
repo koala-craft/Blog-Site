@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ParsedLink } from '~/shared/lib/contentLinks'
 import { fetchPageMetadata } from '~/shared/api/fetchPageMetadata'
+import { isSafeImageUrl } from '~/shared/lib/safeUrl'
 
 function getDomain(url: string): string {
   try {
@@ -34,7 +35,7 @@ export function LinkCard({ text, url }: ParsedLink) {
 
   const displayText =
     metadata.title ?? (text === url ? domain : text)
-  const showImage = metadata.image && !imageError
+  const showImage = metadata.image && isSafeImageUrl(metadata.image) && !imageError
 
   return (
     <a

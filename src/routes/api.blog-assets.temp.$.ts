@@ -23,6 +23,9 @@ export const Route = createFileRoute('/api/blog-assets/temp/$')({
         if (!filename) {
           return new Response('Not Found', { status: 404 })
         }
+        if (/\.\.|[\/\\]/.test(filename)) {
+          return new Response('Bad Request', { status: 400 })
+        }
         const buffer = readTempImage(filename)
         if (!buffer) {
           return new Response('Not Found', { status: 404 })

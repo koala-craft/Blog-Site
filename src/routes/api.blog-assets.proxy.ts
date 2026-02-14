@@ -17,6 +17,8 @@ function isAllowedUrl(url: string, allowedOwner: string, allowedRepo: string): b
   if (parts.length < 6) return false // owner/repo/branch/blog/assets/...
   const [owner, repo, , ...rest] = parts
   const filePath = rest.join('/')
+  // パストラバーサル対策: .. を含むパスを拒否
+  if (filePath.includes('..')) return false
   const allowedExt = /\.(png|jpg|jpeg|gif|webp)$/i
   return (
     owner === allowedOwner &&

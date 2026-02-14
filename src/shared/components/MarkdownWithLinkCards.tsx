@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import { extractLinks, isContentOnlyLinks } from '~/shared/lib/contentLinks'
 import { getBlogImageSrc } from '~/shared/lib/blogImageUrl'
+import { isSafeLinkUrl } from '~/shared/lib/safeUrl'
 import { LinkCard } from './LinkCard'
 
 interface MarkdownWithLinkCardsProps {
@@ -59,6 +60,12 @@ export function MarkdownWithLinkCards({
   // remarkBreaks: 単一改行→br（p 内）、空行→段落区切り（別 p）。useNativeBr 時は br をそのまま、否則は prose-line-break に置換
   const markdownComponents = {
     ...(useNativeBr ? {} : { br: () => <ProseLineBreak /> }),
+    a: ({ href, ...props }: React.ComponentPropsWithoutRef<'a'>) =>
+      href && isSafeLinkUrl(href) ? (
+        <a href={href} rel="noopener noreferrer" target="_blank" {...props} />
+      ) : (
+        <span {...props} />
+      ),
     img: ({ src, alt, ...props }: React.ComponentPropsWithoutRef<'img'>) =>
       src ? (
         <img
@@ -90,7 +97,7 @@ export function MarkdownWithLinkCards({
           return <ProseLineBreak key={i} />
         }
         if (isContentOnlyLinks(trimmed)) {
-          const links = extractLinks(trimmed)
+          const links = extractLinks(trimmed).filter((l) => isSafeLinkUrl(l.url))
           if (links.length === 0) return <ProseLineBreak key={i} />
           return (
             <div key={i} className="space-y-3">
