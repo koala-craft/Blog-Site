@@ -22,9 +22,16 @@ export function HeaderNav() {
         About
       </Link>
       <Link
-        to="/contact"
+        to="/blog"
         activeProps={{ className: 'font-bold text-cyan-400' }}
         className="hover:text-cyan-400 transition"
+      >
+        Blog
+      </Link>
+      <Link
+        to="/contact"
+        activeProps={{ className: 'font-bold text-cyan-400' }}
+        className="hover:text-cyan-400 transition ml-auto"
       >
         Contact
       </Link>
@@ -43,7 +50,7 @@ export function HeaderNav() {
         <Link
           to="/admin"
           activeProps={{ className: 'font-bold text-cyan-400' }}
-          className="hover:text-cyan-400 transition ml-auto"
+          className="hover:text-cyan-400 transition"
         >
           管理
         </Link>

@@ -77,7 +77,7 @@ function BlogIndex() {
 
   return (
     <div className="max-w-[96rem] mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">ブログ</h1>
+      <h1 className="text-3xl font-bold mb-8">Blog</h1>
 
       <div className="mb-6">
         <div className="relative flex gap-2">
