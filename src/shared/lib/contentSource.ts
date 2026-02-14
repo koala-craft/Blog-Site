@@ -18,3 +18,15 @@ export async function getGithubRepoUrlForServer(): Promise<string> {
   if (!isValidGithubRepoUrl(url)) return ''
   return url
 }
+
+export async function getZennUsernameForServer(): Promise<string> {
+  const supabase = getSupabase()
+  if (!supabase) return ''
+  const { data } = await supabase
+    .from('site_config')
+    .select('value')
+    .eq('key', 'zenn_username')
+    .maybeSingle()
+  const value = (data?.value as string) ?? ''
+  return value.trim()
+}

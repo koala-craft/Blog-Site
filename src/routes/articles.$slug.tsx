@@ -1,27 +1,29 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import remarkBreaks from 'remark-breaks'
 import { getArticle } from '~/features/articles/api'
+import { MarkdownWithLinkCards } from '~/shared/components/MarkdownWithLinkCards'
+import { getZennUsernameForServer } from '~/shared/lib/contentSource'
 
 export const Route = createFileRoute('/articles/$slug')({
   component: ArticleDetail,
   loader: async ({ params }) => {
-    const article = await getArticle({ data: { slug: params.slug } })
+    const [article, zennUsername] = await Promise.all([
+      getArticle({ data: { slug: params.slug } }),
+      getZennUsernameForServer(),
+    ])
     if (!article) throw notFound()
-    return article
+    return { article, zennUsername }
   },
 })
 
 function ArticleDetail() {
-  const article = Route.useLoaderData()
+  const { article, zennUsername } = Route.useLoaderData()
+  const zennArticleUrl =
+    zennUsername && article
+      ? `https://zenn.dev/${zennUsername}/articles/${article.slug}`
+      : null
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <Link to="/articles" className="text-cyan-400 hover:underline mb-4 inline-block">
-        ← 一覧に戻る
-      </Link>
-      <article className="prose prose-invert prose-zinc prose-lg max-w-none prose-headings:font-semibold prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline">
+    <article className="max-w-3xl mx-auto px-4">
         <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
         {article.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
@@ -37,11 +39,25 @@ function ArticleDetail() {
             ))}
           </div>
         )}
-        <p className="text-zinc-500 text-sm mb-8 -mt-2">{article.createdAt}</p>
-        <div className="prose-p:leading-relaxed prose-li:my-0.5">
-          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{article.content}</ReactMarkdown>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-8">
+          <p className="text-zinc-500 text-sm -mt-2">{article.createdAt}</p>
+          {zennArticleUrl && (
+            <a
+              href={zennArticleUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-cyan-400 hover:underline"
+            >
+              Zenn で見る ↗
+            </a>
+          )}
         </div>
-      </article>
-    </div>
+        <div className="prose-p:leading-relaxed prose-li:my-0.5">
+          <MarkdownWithLinkCards
+            content={article.content}
+            proseClass="prose prose-invert prose-zinc prose-lg max-w-none prose-headings:font-semibold prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-p:leading-relaxed prose-li:my-0.5"
+          />
+        </div>
+    </article>
   )
 }

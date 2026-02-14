@@ -1,87 +1,132 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import remarkBreaks from 'remark-breaks'
 import { getScrap } from '~/features/scraps/api'
+import { MarkdownWithLinkCards } from '~/shared/components/MarkdownWithLinkCards'
 import { parseScrapTitle } from '~/features/scraps/parseScrapTitle'
 import type { ScrapComment } from '~/features/scraps/types'
+import { getZennUsernameForServer } from '~/shared/lib/contentSource'
 
 export const Route = createFileRoute('/scraps/$slug')({
   component: ScrapDetail,
   loader: async ({ params }) => {
-    const scrap = await getScrap({ data: { slug: params.slug } })
+    const [scrap, zennUsername] = await Promise.all([
+      getScrap({ data: { slug: params.slug } }),
+      getZennUsernameForServer(),
+    ])
     if (!scrap) throw notFound()
-    return scrap
+    return { scrap, zennUsername }
   },
 })
 
+function countComments(comments: ScrapComment[]): number {
+  return comments.reduce(
+    (acc, c) => acc + 1 + (c.children?.length ? countComments(c.children) : 0),
+    0
+  )
+}
+
 function ScrapDetail() {
-  const scrap = Route.useLoaderData()
+  const { scrap, zennUsername } = Route.useLoaderData()
   const { displayTitle, tags } = parseScrapTitle(scrap.title)
+  const zennScrapUrl = zennUsername
+    ? `https://zenn.dev/${zennUsername}/scraps/${scrap.slug}`
+    : null
+  const totalComments = countComments(scrap.comments)
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <Link to="/scraps" className="text-cyan-400 hover:underline mb-4 inline-block">
-        ← 一覧に戻る
-      </Link>
-      <article>
-        <h1 className="text-3xl font-bold mb-2">{displayTitle || scrap.title}</h1>
+    <article className="max-w-3xl mx-auto px-4">
+      {/* ヘッダー: タイトル・メタ・タグを一覧で把握 */}
+      <header className="mb-10">
+        <h1 className="text-2xl font-bold text-zinc-100 leading-tight tracking-tight">
+          {displayTitle || scrap.title}
+        </h1>
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-500">
+          <time dateTime={scrap.created_at}>{scrap.created_at}</time>
+          <span>コメント {totalComments}件</span>
+          {zennScrapUrl && (
+            <a
+              href={zennScrapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:underline"
+            >
+              Zenn で見る ↗
+            </a>
+          )}
+          {(scrap.closed || scrap.archived) && (
+            <span className="flex gap-2">
+              {scrap.closed && (
+                <span className="rounded px-2 py-0.5 bg-amber-500/20 text-amber-400/90 text-xs">
+                  クローズ済
+                </span>
+              )}
+              {scrap.archived && (
+                <span className="rounded px-2 py-0.5 bg-zinc-600/60 text-zinc-400 text-xs">
+                  アーカイブ
+                </span>
+              )}
+            </span>
+          )}
+        </div>
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="mt-4 flex flex-wrap gap-2">
             {tags.map((t) => (
               <Link
                 key={t}
                 to="/scraps"
                 search={{ tag: t }}
-                className="text-sm px-2.5 py-1 rounded bg-zinc-700/50 text-zinc-400 hover:bg-zinc-600/50 hover:text-zinc-300"
+                className="rounded-full px-3 py-1 text-xs font-medium bg-zinc-700/60 text-zinc-300 hover:bg-zinc-600/60 hover:text-zinc-100 transition"
               >
                 {t}
               </Link>
             ))}
           </div>
         )}
-        <p className="text-zinc-500 text-sm mb-6">{scrap.created_at}</p>
+      </header>
+
+      {/* コメントスレッド */}
+      <section aria-label="コメント">
         <div className="space-y-6">
           {scrap.comments.map((c, i) => (
-            <CommentBlock key={i} comment={c} isMain={i === 0} depth={0} />
+            <CommentBlock key={i} comment={c} depth={0} />
           ))}
         </div>
-      </article>
-    </div>
+      </section>
+    </article>
   )
 }
 
+const PROSE_BASE =
+  'prose prose-invert prose-zinc max-w-none prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-p:leading-[1.7] prose-li:my-0.5 prose-headings:font-semibold'
+
 function CommentBlock({
   comment,
-  isMain,
   depth,
 }: {
   comment: ScrapComment
-  isMain?: boolean
   depth?: number
 }) {
-  const proseClass =
-    'prose prose-invert prose-zinc prose-sm max-w-none prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline'
-
-  const wrapperClass = isMain
-    ? 'rounded-lg border-2 border-cyan-500/50 bg-zinc-800/60 p-4'
-    : (depth ?? 0) > 0
-      ? 'ml-4 pl-4 border-l-2 border-zinc-600 bg-zinc-800/30 rounded-r'
-      : 'border-l-2 border-zinc-600 pl-4'
+  const proseClass = `${PROSE_BASE} prose-sm`
 
   return (
-    <div className={wrapperClass}>
-      <div className="flex items-center gap-2 text-xs text-zinc-500 mb-2">
-        <span className="font-medium text-zinc-400">{comment.author}</span>
-        <span>{comment.created_at}</span>
+    <div
+      className={
+        (depth ?? 0) > 0
+          ? 'ml-4 pl-5 border-l-2 border-zinc-600/80 py-4'
+          : 'pl-5 border-l-2 border-zinc-600/60 py-4'
+      }
+    >
+      <div className="flex items-baseline gap-2 text-sm text-zinc-500 mb-3">
+        <span className="font-medium text-zinc-300">{comment.author}</span>
+        <time dateTime={comment.created_at} className="text-xs">
+          {comment.created_at}
+        </time>
       </div>
-      <div className={proseClass}>
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-          {comment.body_markdown}
-        </ReactMarkdown>
-      </div>
+      <MarkdownWithLinkCards
+        content={comment.body_markdown}
+        proseClass={proseClass}
+      />
       {comment.children?.length ? (
-        <div className="mt-3 space-y-3">
+        <div className="mt-4 space-y-4">
           {comment.children.map((c, i) => (
             <CommentBlock key={i} comment={c} depth={(depth ?? 0) + 1} />
           ))}

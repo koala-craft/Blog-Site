@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { getArticles } from '~/features/articles/api'
-import { articleMatchesSearch } from '~/features/articles/searchArticle'
+import { articleMatchesSearch, getArticlePreview } from '~/features/articles/searchArticle'
 import type { Article } from '~/features/articles/types'
 import { useSearchParams } from '~/shared/hooks/useSearchParams'
 
@@ -156,32 +156,45 @@ function ArticlesIndex() {
                 {formatMonthLabel(key)}
               </h2>
               <ul className="space-y-4">
-                {grouped.get(key)!.map((a) => (
-                  <li key={a.slug} className="border-b border-zinc-700 pb-4">
-                    <Link
-                      to="/articles/$slug"
-                      params={{ slug: a.slug }}
-                      className="text-xl text-cyan-400 hover:underline"
-                    >
-                      {a.title}
-                    </Link>
-                    {a.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {a.tags.map((t) => (
-                          <Link
-                            key={t}
-                            to="/articles"
-                            search={{ tag: t }}
-                            className="text-xs px-2 py-0.5 rounded bg-zinc-700/50 text-zinc-400 hover:bg-zinc-600/50"
-                          >
-                            {t}
-                          </Link>
-                        ))}
+                {grouped.get(key)!.map((a) => {
+                  const preview = getArticlePreview(a)
+                  return (
+                    <li key={a.slug}>
+                      <div className="rounded-lg border border-zinc-700/80 bg-zinc-900/50 p-5 transition hover:border-cyan-500/40 hover:bg-zinc-800/60">
+                        <Link
+                          to="/articles/$slug"
+                          params={{ slug: a.slug }}
+                          className="block"
+                        >
+                          <h3 className="text-lg font-semibold text-cyan-400 hover:underline">
+                            {a.title}
+                          </h3>
+                          {preview && (
+                            <p className="mt-2 line-clamp-2 text-sm text-zinc-400">
+                              {preview}
+                            </p>
+                          )}
+                        </Link>
+                        {a.tags.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {a.tags.map((t) => (
+                              <Link
+                                key={t}
+                                to="/articles"
+                                search={{ tag: t }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs px-2 py-0.5 rounded bg-zinc-700/60 text-zinc-400 hover:bg-zinc-600/60 hover:text-zinc-300"
+                              >
+                                {t}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                        <p className="mt-3 text-xs text-zinc-500">{a.createdAt}</p>
                       </div>
-                    )}
-                    <p className="text-sm text-zinc-500 mt-2">{a.createdAt}</p>
-                  </li>
-                ))}
+                    </li>
+                  )
+                })}
               </ul>
             </section>
           ))}

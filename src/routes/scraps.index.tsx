@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { getScraps } from '~/features/scraps/api'
 import { parseScrapTitle } from '~/features/scraps/parseScrapTitle'
-import { scrapMatchesSearch } from '~/features/scraps/searchScrap'
+import { scrapMatchesSearch, getScrapPreview } from '~/features/scraps/searchScrap'
 import type { ScrapWithSlug } from '~/features/scraps/types'
 import { useSearchParams } from '~/shared/hooks/useSearchParams'
 
@@ -159,35 +159,46 @@ function ScrapsIndex() {
               <ul className="space-y-4">
                 {grouped.get(key)!.map((s) => {
                   const { displayTitle, tags } = parseScrapTitle(s.title)
+                  const preview = getScrapPreview(s)
                   return (
-                    <li key={s.slug} className="border-b border-zinc-700 pb-4">
-                      <Link
-                        to="/scraps/$slug"
-                        params={{ slug: s.slug }}
-                        className="text-xl text-cyan-400 hover:underline"
-                      >
-                        {displayTitle || s.title}
-                      </Link>
-                      {tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {tags.map((t) => (
-                            <Link
-                              key={t}
-                              to="/scraps"
-                              search={{ tag: t }}
-                              className="text-xs px-2 py-0.5 rounded bg-zinc-700/50 text-zinc-400 hover:bg-zinc-600/50"
-                            >
-                              {t}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-zinc-500">
-                        <span>{s.created_at}</span>
-                        <span>コメント {s.comments.length}件</span>
-                        {s.comments[0]?.author && (
-                          <span>by {s.comments[0].author}</span>
+                    <li key={s.slug}>
+                      <div className="rounded-lg border border-zinc-700/80 bg-zinc-900/50 p-5 transition hover:border-cyan-500/40 hover:bg-zinc-800/60">
+                        <Link
+                          to="/scraps/$slug"
+                          params={{ slug: s.slug }}
+                          className="block"
+                        >
+                          <h3 className="text-lg font-semibold text-cyan-400 hover:underline">
+                            {displayTitle || s.title}
+                          </h3>
+                          {preview && (
+                            <p className="mt-2 line-clamp-2 text-sm text-zinc-400">
+                              {preview}
+                            </p>
+                          )}
+                        </Link>
+                        {tags.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {tags.map((t) => (
+                              <Link
+                                key={t}
+                                to="/scraps"
+                                search={{ tag: t }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs px-2 py-0.5 rounded bg-zinc-700/60 text-zinc-400 hover:bg-zinc-600/60 hover:text-zinc-300"
+                              >
+                                {t}
+                              </Link>
+                            ))}
+                          </div>
                         )}
+                        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+                          <span>{s.created_at}</span>
+                          <span>コメント {s.comments.length}件</span>
+                          {s.comments[0]?.author && (
+                            <span>by {s.comments[0].author}</span>
+                          )}
+                        </div>
                       </div>
                     </li>
                   )

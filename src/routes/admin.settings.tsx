@@ -4,6 +4,9 @@ import {
   getGithubRepoUrl,
   setGithubRepoUrl,
   validateGithubRepoUrl,
+  getZennUsername,
+  setZennUsername,
+  validateZennUsername,
 } from '~/features/admin/siteConfig'
 
 export const Route = createFileRoute('/admin/settings')({
@@ -12,13 +15,15 @@ export const Route = createFileRoute('/admin/settings')({
 
 function AdminSettings() {
   const [url, setUrl] = useState('')
+  const [zennUsername, setZennUsernameState] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
-    getGithubRepoUrl().then((value) => {
-      setUrl(value)
+    Promise.all([getGithubRepoUrl(), getZennUsername()]).then(([repoUrl, username]) => {
+      setUrl(repoUrl)
+      setZennUsernameState(username)
       setLoading(false)
     })
   }, [])
@@ -26,18 +31,29 @@ function AdminSettings() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
-    const validation = validateGithubRepoUrl(url)
-    if (!validation.valid) {
-      setMessage({ type: 'error', text: validation.error ?? '入力が不正です' })
+    const urlValidation = validateGithubRepoUrl(url)
+    if (!urlValidation.valid) {
+      setMessage({ type: 'error', text: urlValidation.error ?? '入力が不正です' })
+      return
+    }
+    const zennValidation = validateZennUsername(zennUsername)
+    if (!zennValidation.valid) {
+      setMessage({ type: 'error', text: zennValidation.error ?? 'Zenn ユーザー名が不正です' })
       return
     }
     setSaving(true)
-    const result = await setGithubRepoUrl(url)
+    const [urlResult, zennResult] = await Promise.all([
+      setGithubRepoUrl(url),
+      setZennUsername(zennUsername),
+    ])
     setSaving(false)
-    if (result.success) {
+    if (urlResult.success && zennResult.success) {
       setMessage({ type: 'success', text: '保存しました。次回ビルド時に反映されます。' })
     } else {
-      setMessage({ type: 'error', text: result.error ?? '保存に失敗しました' })
+      setMessage({
+        type: 'error',
+        text: urlResult.error ?? zennResult.error ?? '保存に失敗しました',
+      })
     }
   }
 
@@ -70,6 +86,24 @@ function AdminSettings() {
           />
           <p className="text-xs text-zinc-500 mt-1">
             記事・スクラップの取得元。空の場合はローカル content/ を参照します。
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="zenn_username" className="block text-sm font-medium text-zinc-300 mb-2">
+            Zenn ユーザー名
+          </label>
+          <input
+            id="zenn_username"
+            type="text"
+            value={zennUsername}
+            onChange={(e) => setZennUsernameState(e.target.value)}
+            placeholder="username"
+            className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+            disabled={saving}
+          />
+          <p className="text-xs text-zinc-500 mt-1">
+            記事・スクラップ詳細ページに「Zenn で見る」リンクを表示します。空の場合は非表示。
           </p>
         </div>
 
