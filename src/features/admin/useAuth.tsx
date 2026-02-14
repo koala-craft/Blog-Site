@@ -22,6 +22,8 @@ export type AuthState = {
   user: User | null
   isAdmin: boolean
   loading: boolean
+  /** OAuth コールバック処理中（セッション確定を待っている間はログイン画面を出さない） */
+  oauthCallbackPending: boolean
   signIn: () => Promise<void>
   signOut: () => Promise<void>
 }
@@ -31,6 +33,12 @@ export function useAuth(): AuthState {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [adminChecked, setAdminChecked] = useState(false)
+  const [oauthCallbackPending, setOauthCallbackPending] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return /[#&](access_token|refresh_token|code)=/.test(
+      window.location.hash + window.location.search
+    )
+  })
 
   useEffect(() => {
     const supabase = getSupabase()
@@ -42,7 +50,7 @@ export function useAuth(): AuthState {
     const init = async () => {
       try {
         await new Promise((r) => setTimeout(r, INIT_DELAY_MS))
-        const timeoutPromise = new Promise<never>((_, reject) =>
+        const authTimeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Auth timeout')), AUTH_TIMEOUT_MS)
         )
 
@@ -70,10 +78,15 @@ export function useAuth(): AuthState {
             setUser(null)
             setIsAdmin(false)
             setAdminChecked(true)
+            if (isOAuthCallback) {
+              setOauthCallbackPending(true)
+              setTimeout(() => setOauthCallbackPending(false), 5_000)
+            }
             setLoading(false)
             return
           }
 
+          setOauthCallbackPending(false)
           setUser(session.user)
           const { isAdmin: admin } = await resolveAdminState(supabase, session, {
             useCache: true,
@@ -87,7 +100,7 @@ export function useAuth(): AuthState {
               .refreshSession()
               .then(({ data: { session: r } }) => {
                 const s = r ?? session
-                return checkIsAdmin(s.user.id)
+                return checkIsAdmin(s?.access_token ?? '')
               })
               .then((res: CheckAdminResult) => {
                 if (res.ok && res.isAdmin) setAdminCache(session.user.id, true)
@@ -98,9 +111,10 @@ export function useAuth(): AuthState {
           }
         }
 
-        await Promise.race([run(), timeoutPromise])
+        await Promise.race([run(), authTimeoutPromise])
       } catch (e) {
         if (import.meta.env.DEV) console.error('[Auth] init failed', e)
+        setOauthCallbackPending(false)
         setUser(null)
         setIsAdmin(false)
         setAdminChecked(true)
@@ -145,6 +159,7 @@ export function useAuth(): AuthState {
         }
         try {
           if (event === 'SIGNED_IN' && session?.user) {
+            setOauthCallbackPending(false)
             setUser(session.user)
             setAdminChecked(false)
             const supabase = getSupabase()
@@ -180,12 +195,16 @@ export function useAuth(): AuthState {
     }
   }, [])
 
-  const effectiveLoading = loading || (user !== null && !adminChecked)
+  const effectiveLoading =
+    loading ||
+    oauthCallbackPending ||
+    (user !== null && !adminChecked)
 
   return {
     user,
     isAdmin,
     loading: effectiveLoading,
+    oauthCallbackPending,
     signIn: () => signInWithGitHub(),
     signOut,
   }

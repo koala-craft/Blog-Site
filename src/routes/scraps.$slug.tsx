@@ -34,7 +34,7 @@ function ScrapDetail() {
   const totalComments = countComments(scrap.comments)
 
   return (
-    <article className="max-w-3xl mx-auto px-4 pb-60">
+    <article className="max-w-[100ch] mx-auto px-4 pb-60">
       {/* ヘッダー: タイトル・メタ・タグを一覧で把握 */}
       <header className="mb-10">
         <h1 className="text-2xl font-bold text-zinc-100 leading-tight tracking-tight">
@@ -97,7 +97,7 @@ function ScrapDetail() {
 }
 
 const PROSE_BASE =
-  'prose prose-invert prose-zinc max-w-none prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-p:leading-[1.7] prose-li:my-0.5 prose-headings:font-semibold'
+  'prose prose-invert prose-zinc max-w-none tracking-tight prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline prose-p:text-[1.05rem] prose-p:leading-[1.7] prose-li:text-[1.05rem] prose-li:my-0.5 prose-headings:font-semibold'
 
 function GitHubAvatar({ username }: { username: string }) {
   const [failed, setFailed] = useState(false)
@@ -127,7 +127,7 @@ function CommentBlock({
     <div
       className={
         isParent
-          ? 'rounded-lg bg-zinc-800/50 p-5'
+          ? 'rounded-lg p-5'
           : 'ml-4 pl-5 py-4 bg-zinc-900/40'
       }
     >

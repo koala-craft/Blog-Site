@@ -94,6 +94,84 @@ export async function fetchFileContent(
   return null
 }
 
+export async function getFileSha(
+  owner: string,
+  repo: string,
+  path: string,
+  token: string
+): Promise<string | null> {
+  const headers: Record<string, string> = {
+    ...GITHUB_HEADERS,
+    Authorization: `Bearer ${token}`,
+  }
+  const res = await fetchWithTimeout(
+    `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}`,
+    { headers }
+  )
+  if (!res.ok) return null
+  const data = (await res.json()) as { sha?: string }
+  return data.sha ?? null
+}
+
+export async function updateFileOnGitHub(
+  owner: string,
+  repo: string,
+  path: string,
+  content: string,
+  message: string,
+  token: string,
+  sha?: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const headers: Record<string, string> = {
+    ...GITHUB_HEADERS,
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+  const body: Record<string, unknown> = {
+    message,
+    content: Buffer.from(content, 'utf-8').toString('base64'),
+  }
+  if (sha) body.sha = sha
+
+  const res = await fetchWithTimeout(
+    `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}`,
+    { method: 'PUT', headers, body: JSON.stringify(body) }
+  )
+
+  if (!res.ok) {
+    const err = (await res.json()) as { message?: string }
+    return { success: false, error: err.message ?? res.statusText }
+  }
+  return { success: true }
+}
+
+export async function deleteFileOnGitHub(
+  owner: string,
+  repo: string,
+  path: string,
+  message: string,
+  token: string,
+  sha: string
+): Promise<{ success: boolean; error?: string }> {
+  const headers: Record<string, string> = {
+    ...GITHUB_HEADERS,
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+  const body = { message, sha }
+
+  const res = await fetchWithTimeout(
+    `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}`,
+    { method: 'DELETE', headers, body: JSON.stringify(body) }
+  )
+
+  if (!res.ok) {
+    const err = (await res.json()) as { message?: string }
+    return { success: false, error: err.message ?? res.statusText }
+  }
+  return { success: true }
+}
+
 export async function fetchRawFile(downloadUrl: string): Promise<string | null> {
   // SSRF 対策: raw.githubusercontent.com のみ許可
   if (!downloadUrl.startsWith('https://raw.githubusercontent.com/')) return null

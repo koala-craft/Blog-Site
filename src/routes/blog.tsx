@@ -1,12 +1,12 @@
 import { Link, Outlet, createFileRoute, useMatchRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/scraps')({
-  component: ScrapsLayout,
+export const Route = createFileRoute('/blog')({
+  component: BlogLayout,
 })
 
-function ScrapsLayout() {
+function BlogLayout() {
   const matchRoute = useMatchRoute()
-  const isDetail = !!matchRoute({ to: '/scraps/$slug', fuzzy: true })
+  const isDetail = !!matchRoute({ to: '/blog/$slug', fuzzy: true })
 
   return (
     <div className="min-h-[calc(100vh-4rem)] pt-8">
@@ -19,10 +19,10 @@ function ScrapsLayout() {
         </Link>
         <span aria-hidden>›</span>
         <Link
-          to="/scraps"
+          to="/blog"
           className={isDetail ? 'hover:text-cyan-400 transition' : 'text-cyan-400 font-medium'}
         >
-          スクラップ
+          ブログ
         </Link>
       </nav>
       <Outlet />

@@ -1,20 +1,49 @@
-export function LoginForm({ onSignIn }: { onSignIn: () => void }) {
+/** ログイン画面の共通レイアウト。loading 時はボタン位置をスピナーに置換 */
+export function LoginFormPlaceholder({
+  loading,
+  onSignIn,
+}: {
+  loading: boolean
+  onSignIn?: () => void
+}) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] gap-6">
       <h2 className="text-xl font-semibold text-zinc-300">管理画面にログイン</h2>
-      <p className="text-zinc-500 text-sm text-center max-w-md">
-        GitHub アカウントでログインしてください。
-        admins テーブルに登録されたユーザーのみ管理者として利用できます。
-      </p>
-      <button
-        type="button"
-        onClick={onSignIn}
-        className="px-6 py-3 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded-lg transition flex items-center gap-2"
-      >
-        <GitHubIcon />
-        GitHub でログイン
-      </button>
+      {loading ? (
+        <div className="flex flex-col items-center gap-3 py-4">
+          <LoadingSpinner />
+          <p className="text-zinc-500 text-sm">少々お待ちください。</p>
+        </div>
+      ) : onSignIn ? (
+        <button
+          type="button"
+          onClick={onSignIn}
+          className="px-6 py-3 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded-lg transition flex items-center gap-2"
+        >
+          <GitHubIcon />
+          GitHub でログイン
+        </button>
+      ) : null}
     </div>
+  )
+}
+
+export function LoginForm({
+  onSignIn,
+  loading = false,
+}: {
+  onSignIn: () => void
+  loading?: boolean
+}) {
+  return <LoginFormPlaceholder loading={loading} onSignIn={onSignIn} />
+}
+
+function LoadingSpinner() {
+  return (
+    <div
+      className="h-8 w-8 rounded-full border-2 border-zinc-600 border-t-cyan-500 animate-spin"
+      aria-hidden
+    />
   )
 }
 

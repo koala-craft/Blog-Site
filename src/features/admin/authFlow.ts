@@ -35,14 +35,14 @@ export async function verifyAdminWithRetry(
     }
     const { data: { session: refreshed } } = await supabase.auth.refreshSession()
     activeSession = refreshed ?? activeSession
-    let result = await checkIsAdmin(activeSession.user.id)
+    let result = await checkIsAdmin(activeSession.access_token ?? '')
     if (result.ok) {
       if (result.isAdmin) setAdminCache(activeSession.user.id, true)
       return { ok: true, isAdmin: result.isAdmin }
     }
     for (let i = 0; i < INNER_RETRIES; i++) {
       await sleep(RETRY_INNER_DELAY_MS * (i + 1))
-      result = await checkIsAdmin(activeSession.user.id)
+      result = await checkIsAdmin(activeSession.access_token ?? '')
       if (result.ok) {
         if (result.isAdmin) setAdminCache(activeSession.user.id, true)
         return { ok: true, isAdmin: result.isAdmin }

@@ -9,9 +9,9 @@ function ArticlesLayout() {
   const isDetail = !!matchRoute({ to: '/articles/$slug', fuzzy: true })
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]">
+    <div className="min-h-[calc(100vh-4rem)] pt-8">
       <nav
-        className="flex items-center gap-2 text-sm text-zinc-400 mb-6"
+        className="max-w-4xl mx-auto px-4 flex items-center gap-2 text-sm text-zinc-400 mb-6"
         aria-label="パンくず"
       >
         <Link to="/" className="hover:text-cyan-400 transition">

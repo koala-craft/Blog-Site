@@ -1,9 +1,10 @@
 /**
- * サイト設定（site_config テーブル）
- * 管理者のみ編集可能（RLS で制御）
+ * サイト設定（config.json）
+ * 管理者のみ編集可能
  */
 
-import { getSupabase } from '~/shared/lib/supabase'
+import { getConfig, setConfig } from './configApi'
+import type { AppConfig } from '~/shared/lib/config'
 
 const GITHUB_REPO_URL_REGEX = /^https:\/\/github\.com\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/
 const VALUE_MAX_LENGTH = 500
@@ -39,56 +40,13 @@ export function validateZennUsername(value: string): { valid: boolean; error?: s
 }
 
 export async function getZennUsername(): Promise<string> {
-  const supabase = getSupabase()
-  if (!supabase) return ''
-  const { data } = await supabase
-    .from('site_config')
-    .select('value')
-    .eq('key', 'zenn_username')
-    .maybeSingle()
-  return ((data?.value as string) ?? '').trim()
-}
-
-export async function setZennUsername(username: string): Promise<{
-  success: boolean
-  error?: string
-}> {
-  const validation = validateZennUsername(username)
-  if (!validation.valid) {
-    return { success: false, error: validation.error }
-  }
-
-  const supabase = getSupabase()
-  if (!supabase) {
-    return { success: false, error: 'Supabase が設定されていません' }
-  }
-
-  const { error } = await supabase
-    .from('site_config')
-    .upsert(
-      {
-        key: 'zenn_username',
-        value: username.trim(),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'key' }
-    )
-
-  if (error) {
-    return { success: false, error: error.message }
-  }
-  return { success: true }
+  const config = await getConfig()
+  return config.zenn_username
 }
 
 export async function getGithubRepoUrl(): Promise<string> {
-  const supabase = getSupabase()
-  if (!supabase) return ''
-  const { data } = await supabase
-    .from('site_config')
-    .select('value')
-    .eq('key', 'github_repo_url')
-    .maybeSingle()
-  return (data?.value as string) ?? ''
+  const config = await getConfig()
+  return config.github_repo_url
 }
 
 export async function setGithubRepoUrl(url: string): Promise<{ success: boolean; error?: string }> {
@@ -96,25 +54,31 @@ export async function setGithubRepoUrl(url: string): Promise<{ success: boolean;
   if (!validation.valid) {
     return { success: false, error: validation.error }
   }
+  return setConfigPartial({ github_repo_url: url })
+}
 
-  const supabase = getSupabase()
-  if (!supabase) {
-    return { success: false, error: 'Supabase が設定されていません' }
+export async function setZennUsername(username: string): Promise<{ success: boolean; error?: string }> {
+  const validation = validateZennUsername(username)
+  if (!validation.valid) {
+    return { success: false, error: validation.error }
   }
+  return setConfigPartial({ zenn_username: username })
+}
 
-  const { error } = await supabase
-    .from('site_config')
-    .upsert(
-      {
-        key: 'github_repo_url',
-        value: url,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'key' }
-    )
+async function setConfigPartial(partial: Partial<Pick<AppConfig, 'github_repo_url' | 'zenn_username'>>): Promise<{ success: boolean; error?: string }> {
+  const { getSession } = await import('./auth')
+  const session = await getSession()
+  if (!session) return { success: false, error: 'ログインが必要です' }
 
-  if (error) {
-    return { success: false, error: error.message }
-  }
-  return { success: true }
+  const current = await getConfig()
+  const result = await setConfig({
+    data: {
+      accessToken: session.session.access_token,
+      providerToken: session.session.provider_token ?? undefined,
+      github_repo_url: partial.github_repo_url ?? current.github_repo_url,
+      zenn_username: partial.zenn_username ?? current.zenn_username,
+      admins: current.admins,
+    },
+  })
+  return result
 }

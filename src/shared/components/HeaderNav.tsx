@@ -12,36 +12,22 @@ export function HeaderNav() {
         activeOptions={{ exact: true }}
         className="hover:text-cyan-400 transition"
       >
-        トップ
+        Home
       </Link>
       <Link
-        to="/articles"
+        to="/about"
         activeProps={{ className: 'font-bold text-cyan-400' }}
         className="hover:text-cyan-400 transition"
       >
-        記事
-      </Link>
-      <Link
-        to="/scraps"
-        activeProps={{ className: 'font-bold text-cyan-400' }}
-        className="hover:text-cyan-400 transition"
-      >
-        スクラップ
-      </Link>
-      <Link
-        to="/tasks"
-        activeProps={{ className: 'font-bold text-cyan-400' }}
-        className="hover:text-cyan-400 transition"
-      >
-        タスク
+        About
       </Link>
       {user && (
         <Link
-          to="/admin/tasks"
+          to="/admin"
           activeProps={{ className: 'font-bold text-cyan-400' }}
           className="hover:text-cyan-400 transition ml-auto"
         >
-          タスク管理
+          管理
         </Link>
       )}
     </nav>

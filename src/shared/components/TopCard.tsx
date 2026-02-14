@@ -1,7 +1,5 @@
 import { useRef } from 'react'
-import { Link } from '@tanstack/react-router'
-
-const SCROLL_SPEED_PX_PER_MS = 0.04
+import { Link, useNavigate } from '@tanstack/react-router'
 
 type TopCardProps = {
   to: string
@@ -12,49 +10,24 @@ type TopCardProps = {
 }
 
 export function TopCard({ to, params, ariaLabel, title, children }: TopCardProps) {
+  const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const rafIdRef = useRef<number | null>(null)
 
-  const scrollOnHover = (direction: 'end' | 'start') => {
+  const handleWheel = (e: React.WheelEvent) => {
     const el = scrollRef.current
-    if (!el) return
-    if (rafIdRef.current != null) {
-      cancelAnimationFrame(rafIdRef.current)
-      rafIdRef.current = null
-    }
+    if (!el || el.scrollWidth <= el.clientWidth) return
+    e.preventDefault()
+    el.scrollLeft += e.deltaY
+  }
 
-    if (direction === 'start') {
-      el.scrollLeft = 0
-      return
-    }
-
-    const target = el.scrollWidth - el.clientWidth
-    if (target <= 0) return
-
-    const start = el.scrollLeft
-    const distance = Math.abs(target - start)
-    const durationMs = distance / SCROLL_SPEED_PX_PER_MS
-    const startTime = performance.now()
-
-    const step = (now: number) => {
-      const elapsed = now - startTime
-      const progress = Math.min(elapsed / durationMs, 1)
-      el.scrollLeft = start + (target - start) * progress
-      if (progress < 1) {
-        rafIdRef.current = requestAnimationFrame(step)
-      } else {
-        rafIdRef.current = null
-      }
-    }
-    rafIdRef.current = requestAnimationFrame(step)
+  const handleScrollAreaClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (target.closest('a')) return
+    navigate({ to, params })
   }
 
   return (
-    <li
-      className="relative"
-      onMouseEnter={() => scrollOnHover('end')}
-      onMouseLeave={() => scrollOnHover('start')}
-    >
+    <li className="relative">
       <Link
         to={to}
         params={params}
@@ -67,8 +40,9 @@ export function TopCard({ to, params, ariaLabel, title, children }: TopCardProps
         </h3>
         <div
           ref={scrollRef}
-          className="mt-2 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ scrollBehavior: 'auto' } as React.CSSProperties}
+          className="topcard-scroll mt-2 overflow-x-auto overflow-y-hidden pointer-events-auto cursor-pointer"
+          onWheel={handleWheel}
+          onClick={handleScrollAreaClick}
         >
           <div className="flex min-w-max flex-nowrap items-center gap-x-2 text-xs text-zinc-500">
             {children}

@@ -10,11 +10,11 @@ function AdminDashboard() {
       <h1 className="text-3xl font-bold mb-8">管理ダッシュボード</h1>
       <div className="grid gap-4 md:grid-cols-2">
         <Link
-          to="/admin/tasks"
+          to="/admin/blog"
           className="block p-6 bg-zinc-800 rounded hover:bg-zinc-700 transition"
         >
-          <h2 className="text-xl font-semibold mb-2">タスク管理</h2>
-          <p className="text-zinc-400 text-sm">Todo アプリとしてタスクを管理</p>
+          <h2 className="text-xl font-semibold mb-2">ブログ</h2>
+          <p className="text-zinc-400 text-sm">ブログ記事の作成・編集・削除</p>
         </Link>
         <Link
           to="/admin/settings"

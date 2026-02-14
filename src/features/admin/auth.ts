@@ -1,5 +1,6 @@
 import type { User, Session } from '@supabase/supabase-js'
 import { getSupabase } from '~/shared/lib/supabase'
+import { verifyAdminServer } from './verifyAdmin'
 
 export async function signInWithGitHub(redirectTo?: string): Promise<void> {
   const supabase = getSupabase()
@@ -31,6 +32,17 @@ export async function getSession(): Promise<{ user: User; session: Session } | n
 }
 
 export type CheckAdminResult = { ok: true; isAdmin: boolean } | { ok: false }
+
+/** config.json の admins で管理者判定。サーバー関数を呼ぶ */
+export async function checkIsAdmin(accessToken: string): Promise<CheckAdminResult> {
+  if (!accessToken) return { ok: false }
+  try {
+    const result = await verifyAdminServer({ data: { accessToken } })
+    return result.ok ? { ok: true, isAdmin: result.isAdmin } : { ok: false }
+  } catch {
+    return { ok: false }
+  }
+}
 
 const ADMIN_CACHE_KEY = 'obsidian-log-admin-cache'
 const ADMIN_CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24時間
@@ -77,14 +89,3 @@ export function clearAdminCache(): void {
   }
 }
 
-export async function checkIsAdmin(userId: string): Promise<CheckAdminResult> {
-  const supabase = getSupabase()
-  if (!supabase) return { ok: false }
-  const { data, error } = await supabase
-    .from('admins')
-    .select('user_id')
-    .eq('user_id', userId)
-    .maybeSingle()
-  if (error) return { ok: false }
-  return { ok: true, isAdmin: !!data }
-}

@@ -1,26 +1,33 @@
-import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
+import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-router'
 import { useAuth } from '~/features/admin/useAuth'
 import { AuthDebugInfo } from '~/features/admin/AuthDebugInfo'
 import { ForbiddenMessage } from '~/features/admin/ForbiddenMessage'
-import { LoginForm } from '~/features/admin/LoginForm'
+import { LoginForm, LoginFormPlaceholder } from '~/features/admin/LoginForm'
 
 export const Route = createFileRoute('/admin')({
   component: AdminLayout,
-  ssr: false, // useAuth はブラウザAPI（sessionStorage等）に依存するためクライアントのみでレンダリング
+  pendingComponent: AdminLoginPending,
+  pendingMs: 0, // 即座にログイン画面を表示（読み込み中...を出さない）
+  ssr: false, // useAuth は sessionStorage 等のブラウザ API に依存
 })
+
+/** ルート読み込み中も「管理画面にログイン」を即表示。読み込み中...を出さない */
+function AdminLoginPending() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <nav className="mb-8">
+        <Link to="/" className="text-zinc-500 hover:underline">
+          ← サイトに戻る
+        </Link>
+      </nav>
+      <LoginFormPlaceholder loading />
+    </div>
+  )
+}
 
 function AdminLayout() {
   const { user, isAdmin, loading, signIn, signOut } = useAuth()
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <p className="text-zinc-500">読み込み中...</p>
-        </div>
-      </div>
-    )
-  }
+  const { pathname } = useLocation()
 
   if (!user) {
     return (
@@ -30,7 +37,18 @@ function AdminLayout() {
             ← サイトに戻る
           </Link>
         </nav>
-        <LoginForm onSignIn={signIn} />
+        <LoginForm onSignIn={signIn} loading={loading} />
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
+          <div className="h-8 w-8 rounded-full border-2 border-zinc-600 border-t-cyan-500 animate-spin" />
+          <p className="text-zinc-500 text-sm">認証を確認しています。少々お待ちください。</p>
+        </div>
       </div>
     )
   }
@@ -54,14 +72,22 @@ function AdminLayout() {
     user.email ??
     '管理者'
 
+  const isBlogEditor = /^\/admin\/blog\/(new|[^/]+)$/.test(pathname)
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <nav className="mb-8 flex gap-4 items-center flex-wrap">
+    <div
+      className={
+        isBlogEditor
+          ? 'w-full max-w-[1800px] mx-auto px-4 py-4'
+          : 'max-w-4xl mx-auto px-4 py-8'
+      }
+    >
+      <nav className={`flex gap-4 items-center flex-wrap ${isBlogEditor ? 'mb-4' : 'mb-8'}`}>
         <Link to="/admin" className="text-cyan-400 hover:underline">
           ダッシュボード
         </Link>
-        <Link to="/admin/tasks" className="text-cyan-400 hover:underline">
-          タスク管理
+        <Link to="/admin/blog" className="text-cyan-400 hover:underline">
+          ブログ
         </Link>
         <Link to="/admin/settings" className="text-cyan-400 hover:underline">
           サイト設定
