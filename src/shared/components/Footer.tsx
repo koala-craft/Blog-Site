@@ -1,9 +1,10 @@
-import { Link, useLoaderData } from '@tanstack/react-router'
-import type { RootLoaderData } from '~/shared/types/rootLoader'
+import { Link } from '@tanstack/react-router'
+import { Route } from '~/routes/__root/route'
+import { TECH_DEFAULT_SEARCH } from '~/routes/tech.types'
 
 export function Footer() {
-  const rootData = useLoaderData({ from: '__root__' }) as unknown as RootLoaderData | undefined
-  const siteTitle = rootData?.siteTitle?.trim() || '気楽に誠実に'
+  const rootData = Route.useLoaderData()
+  const siteTitle = rootData.siteTitle.trim() || '気楽に誠実に'
 
   return (
     <footer className="relative z-10 border-t border-zinc-800 mt-auto">
@@ -30,7 +31,7 @@ export function Footer() {
             </Link>
             <Link
               to="/tech"
-              search={{ tab: 'articles', articleTag: undefined, scrapTag: undefined, q: undefined }}
+              search={TECH_DEFAULT_SEARCH}
               className="text-sm text-zinc-500 hover:text-cyan-400 transition"
             >
               Tech

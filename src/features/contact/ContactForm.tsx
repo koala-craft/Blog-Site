@@ -53,7 +53,8 @@ export function ContactForm() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = e.currentTarget as HTMLFormElement
+    const form = e.currentTarget
+    if (!(form instanceof HTMLFormElement)) return
     if (!form.checkValidity()) {
       form.reportValidity()
       return

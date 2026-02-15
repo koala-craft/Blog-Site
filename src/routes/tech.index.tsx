@@ -8,12 +8,11 @@ import { parseScrapTitle } from '~/features/scraps/parseScrapTitle'
 import { scrapMatchesSearch, getScrapPreview } from '~/features/scraps/searchScrap'
 import type { Article } from '~/features/articles/types'
 import type { ScrapWithSlug } from '~/features/scraps/types'
-
-type Tab = 'articles' | 'scraps'
+import type { TechSearchParams, TechTab } from '~/routes/tech.types'
 
 const SEARCH_DEBOUNCE_MS = 300
 
-const isTab = (value: unknown): value is Tab =>
+const isTab = (value: unknown): value is TechTab =>
   value === 'articles' || value === 'scraps'
 
 export const Route = createFileRoute('/tech/')({
@@ -21,12 +20,7 @@ export const Route = createFileRoute('/tech/')({
 
   validateSearch: (
     search: Record<string, unknown>
-  ): {
-    tab: Tab
-    articleTag?: string
-    scrapTag?: string
-    q?: string
-  } => ({
+  ): TechSearchParams => ({
     tab: isTab(search.tab) ? search.tab : 'articles',
 
     articleTag:

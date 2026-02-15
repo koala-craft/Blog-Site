@@ -1,11 +1,10 @@
-import { useLoaderData } from '@tanstack/react-router'
-import type { RootLoaderData } from '~/shared/types/rootLoader'
+import { Route } from '~/routes/__root/route'
 
 /**
  * ルートローダーで取得した zennUsername を返す。
  * Zenn リンク（記事・スクラップの「Zenn で見る」）の生成に使用。
  */
 export function useZennUsername(): string {
-  const rootData = useLoaderData({ from: '__root__' }) as unknown as RootLoaderData | undefined
-  return rootData?.zennUsername ?? ''
+  const rootData = Route.useLoaderData()
+  return rootData.zennUsername
 }

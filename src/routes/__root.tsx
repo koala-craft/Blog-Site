@@ -1,9 +1,5 @@
 /// <reference types="vite/client" />
-import {
-  HeadContent,
-  Scripts,
-  createRootRoute,
-} from '@tanstack/react-router'
+import { HeadContent, Scripts } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import * as React from 'react'
 import { AuthProvider } from '~/features/admin/AuthProvider'
@@ -12,19 +8,10 @@ import { DefaultCatchBoundary } from '~/shared/components/DefaultCatchBoundary'
 import { HeaderNav } from '~/shared/components/HeaderNav'
 import { Footer } from '~/shared/components/Footer'
 import { NotFound } from '~/shared/components/NotFound'
-import { getConfig } from '~/features/admin/configApi'
+import { Route as BaseRoute } from '~/routes/__root/route'
 import appCss from '~/styles/app.css?url'
 
-export const Route = createRootRoute({
-  loader: async () => {
-    const config = await getConfig()
-    return {
-      zennUsername: config.zenn_username?.trim() ?? '',
-      authorName: config.author_name?.trim() ?? '',
-      authorIcon: config.author_icon?.trim() ?? '',
-      siteTitle: config.site_title?.trim() ?? '',
-    }
-  },
+export const Route = BaseRoute.update({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },

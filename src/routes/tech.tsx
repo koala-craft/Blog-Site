@@ -1,4 +1,5 @@
 import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
+import { TECH_DEFAULT_SEARCH } from '~/routes/tech.types'
 
 export const Route = createFileRoute('/tech')({
   component: TechLayout,
@@ -17,7 +18,7 @@ function TechLayout() {
         <span aria-hidden>›</span>
         <Link
           to="/tech"
-          search={{ tab: 'articles', articleTag: undefined, scrapTag: undefined, q: undefined }}
+          search={TECH_DEFAULT_SEARCH}
           className="text-cyan-400 font-medium"
         >
           Tech
