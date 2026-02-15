@@ -13,18 +13,43 @@ type Tab = 'articles' | 'scraps'
 
 const SEARCH_DEBOUNCE_MS = 300
 
+const isTab = (value: unknown): value is Tab =>
+  value === 'articles' || value === 'scraps'
+
 export const Route = createFileRoute('/tech/')({
   component: TechIndex,
+
   validateSearch: (
     search: Record<string, unknown>
-  ): { tab?: Tab; articleTag?: string; scrapTag?: string; q?: string } => ({
-    tab: (search.tab as Tab) || 'articles',
-    articleTag: typeof search.articleTag === 'string' ? search.articleTag : undefined,
-    scrapTag: typeof search.scrapTag === 'string' ? search.scrapTag : undefined,
-    q: typeof search.q === 'string' ? search.q : undefined,
+  ): {
+    tab: Tab
+    articleTag?: string
+    scrapTag?: string
+    q?: string
+  } => ({
+    tab: isTab(search.tab) ? search.tab : 'articles',
+
+    articleTag:
+      typeof search.articleTag === 'string'
+        ? search.articleTag
+        : undefined,
+
+    scrapTag:
+      typeof search.scrapTag === 'string'
+        ? search.scrapTag
+        : undefined,
+
+    q:
+      typeof search.q === 'string'
+        ? search.q
+        : undefined,
   }),
+
   loader: async () => {
-    const [articles, scraps] = await Promise.all([getArticles(), getScraps()])
+    const [articles, scraps] = await Promise.all([
+      getArticles(),
+      getScraps(),
+    ])
     return { articles, scraps }
   },
 })
@@ -35,7 +60,7 @@ function formatMonthKey(dateStr: string): string {
   const parts = base.split('-')
   const y = (parts[0] ?? '').replace(/^["'\s\u201C\u201D]+|["'\s\u201C\u201D]+$/g, '')
   const m = (parts[1] ?? '01').replace(/^["'\s\u201C\u201D]+|["'\s\u201C\u201D]+$/g, '')
-  return `${y}-${m || '01'}`
+  return `${y}-${m || `01`}`
 }
 
 function formatMonthLabel(key: string): string {
