@@ -3,7 +3,9 @@ import type { RootLoaderData } from '~/shared/types/rootLoader'
 import { TECH_DEFAULT_SEARCH } from '~/shared/types/techSearch'
 
 export function Footer() {
-  const rootData = useLoaderData({ from: '__root__' }) as RootLoaderData
+  const rootData = useLoaderData({
+    from: '__root__' as const,
+  }) as RootLoaderData
   const siteTitle = rootData.siteTitle.trim() || '気楽に誠実に'
 
   return (

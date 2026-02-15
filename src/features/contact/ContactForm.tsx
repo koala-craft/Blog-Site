@@ -54,10 +54,11 @@ export function ContactForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
-    if (!(form instanceof HTMLFormElement)) return
-    if (!form.checkValidity()) {
-      form.reportValidity()
-      return
+    if (form instanceof HTMLFormElement) {
+      if (!form.checkValidity()) {
+        form.reportValidity()
+        return
+      }
     }
     setShowConfirmModal(true)
   }
