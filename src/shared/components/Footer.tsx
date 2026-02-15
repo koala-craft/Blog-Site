@@ -1,8 +1,8 @@
-// @ts-nocheck
 import { Link, useLoaderData } from '@tanstack/react-router'
+import type { RootLoaderData } from '~/shared/types/rootLoader'
 
 export function Footer() {
-  const rootData = useLoaderData({ from: '__root__', strict: false }) as any
+  const rootData = useLoaderData({ from: '__root__' }) as unknown as RootLoaderData | undefined
   const siteTitle = rootData?.siteTitle?.trim() || '気楽に誠実に'
 
   return (
