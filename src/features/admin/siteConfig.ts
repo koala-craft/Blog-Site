@@ -67,6 +67,11 @@ export async function getAuthorName(): Promise<string> {
   return config.author_name ?? ''
 }
 
+export async function getAuthorOneLiner(): Promise<string> {
+  const config = await getConfig()
+  return config.author_one_liner ?? ''
+}
+
 
 export async function setGithubRepoUrl(url: string): Promise<{ success: boolean; error?: string }> {
   const validation = validateGithubRepoUrl(url)
@@ -118,6 +123,14 @@ export function validateAuthorName(value: string): { valid: boolean; error?: str
 }
 
 const AUTHOR_ICON_MAX_LENGTH = 2000
+const AUTHOR_ONE_LINER_MAX_LENGTH = 200
+
+export function validateAuthorOneLiner(value: string): { valid: boolean; error?: string } {
+  if (value.length > AUTHOR_ONE_LINER_MAX_LENGTH) {
+    return { valid: false, error: `${AUTHOR_ONE_LINER_MAX_LENGTH}文字以内で入力してください` }
+  }
+  return { valid: true }
+}
 
 export function validateAuthorIcon(url: string): { valid: boolean; error?: string } {
   if (url === '') return { valid: true }
@@ -142,6 +155,7 @@ export async function setSiteConfigAll(params: {
   site_title: string
   site_subtitle: string
   author_icon?: string
+  author_one_liner?: string
 }): Promise<{ success: boolean; error?: string }> {
   const urlValidation = validateGithubRepoUrl(params.github_repo_url)
   if (!urlValidation.valid) {
@@ -165,6 +179,10 @@ export async function setSiteConfigAll(params: {
       return { success: false, error: iconValidation.error }
     }
   }
+  const oneLinerValidation = validateAuthorOneLiner(params.author_one_liner ?? '')
+  if (!oneLinerValidation.valid) {
+    return { success: false, error: oneLinerValidation.error }
+  }
   return setConfigPartial({
     github_repo_url: params.github_repo_url,
     zenn_username: params.zenn_username,
@@ -172,12 +190,13 @@ export async function setSiteConfigAll(params: {
     site_title: params.site_title.trim(),
     site_subtitle: params.site_subtitle.trim(),
     author_icon: params.author_icon?.trim(),
+    author_one_liner: params.author_one_liner?.trim(),
   })
 }
 
 async function setConfigPartial(
   partial: Partial<
-    Pick<AppConfig, 'github_repo_url' | 'zenn_username' | 'author_name' | 'site_title' | 'site_subtitle' | 'author_icon'>
+    Pick<AppConfig, 'github_repo_url' | 'zenn_username' | 'author_name' | 'site_title' | 'site_subtitle' | 'author_icon' | 'author_one_liner'>
   >
 ): Promise<{ success: boolean; error?: string }> {
   const { getSession } = await import('./auth')
@@ -196,6 +215,7 @@ async function setConfigPartial(
       site_title: partial.site_title ?? current.site_title ?? '',
       site_subtitle: partial.site_subtitle ?? current.site_subtitle ?? '',
       author_icon: partial.author_icon !== undefined ? partial.author_icon : current.author_icon ?? '',
+      author_one_liner: partial.author_one_liner !== undefined ? partial.author_one_liner : current.author_one_liner ?? '',
     },
   })
   return result

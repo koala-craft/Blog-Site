@@ -6,6 +6,7 @@ import {
   getAuthorName,
   getSiteHeader,
   getAuthorIcon,
+  getAuthorOneLiner,
   setSiteConfigAll,
   validateGithubRepoUrl,
   validateZennUsername,
@@ -28,6 +29,7 @@ function AdminSettings() {
   const [siteTitle, setSiteTitle] = useState('')
   const [siteSubtitle, setSiteSubtitle] = useState('')
   const [authorIcon, setAuthorIcon] = useState('')
+  const [authorOneLiner, setAuthorOneLiner] = useState('')
   const [authorIconUploading, setAuthorIconUploading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -36,14 +38,15 @@ function AdminSettings() {
   useEffect(() => {
     const LOAD_TIMEOUT_MS = 15_000
     const timer = setTimeout(() => setLoading(false), LOAD_TIMEOUT_MS)
-    Promise.all([getGithubRepoUrl(), getZennUsername(), getAuthorName(), getSiteHeader(), getAuthorIcon()])
-      .then(([repoUrl, username, name, header, icon]) => {
+    Promise.all([getGithubRepoUrl(), getZennUsername(), getAuthorName(), getSiteHeader(), getAuthorIcon(), getAuthorOneLiner()])
+      .then(([repoUrl, username, name, header, icon, oneLiner]) => {
         setUrl(repoUrl)
         setZennUsernameState(username)
         setAuthorNameState(name)
         setSiteTitle(header.title)
         setSiteSubtitle(header.subtitle)
         setAuthorIcon(icon)
+        setAuthorOneLiner(oneLiner)
       })
       .finally(() => {
         clearTimeout(timer)
@@ -152,6 +155,7 @@ function AdminSettings() {
       site_title: siteTitle,
       site_subtitle: siteSubtitle,
       author_icon: authorIcon,
+      author_one_liner: authorOneLiner,
     })
     setSaving(false)
     if (result.success) {
@@ -300,6 +304,25 @@ function AdminSettings() {
           />
           <p className="text-xs text-zinc-500 mt-1">
             Author ページ・記事フッターなどで表示する作者名。Zenn ユーザー名とは別に管理します。
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="author_one_liner" className="block text-sm font-medium text-zinc-300 mb-2">
+            ひとこと
+          </label>
+          <input
+            id="author_one_liner"
+            type="text"
+            value={authorOneLiner}
+            onChange={(e) => setAuthorOneLiner(e.target.value)}
+            placeholder="Author ページの作者名下に表示する一言"
+            maxLength={200}
+            className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+            disabled={saving}
+          />
+          <p className="text-xs text-zinc-500 mt-1">
+            Author ページの作者名（{authorName || '表示名'}）の下に表示されます。200文字以内。
           </p>
         </div>
 

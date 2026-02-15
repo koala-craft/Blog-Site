@@ -14,6 +14,7 @@ export const Route = createFileRoute('/author')({
     return {
       authorIcon: config.author_icon?.trim() ?? '',
       authorName: config.author_name?.trim() ?? '',
+      authorOneLiner: config.author_one_liner?.trim() ?? '',
       zennUsername: config.zenn_username?.trim() ?? '',
       personalItems,
       professionalItems,
@@ -24,7 +25,7 @@ export const Route = createFileRoute('/author')({
 })
 
 function AuthorPage() {
-  const { authorIcon, authorName, zennUsername, personalItems, professionalItems, sidejobItems } = Route.useLoaderData()
+  const { authorIcon, authorName, authorOneLiner, zennUsername, personalItems, professionalItems, sidejobItems } = Route.useLoaderData()
   const displayName = authorName || zennUsername || 'Author'
 
   return (
@@ -44,9 +45,11 @@ function AuthorPage() {
             <span className="font-semibold text-zinc-100">{displayName}</span>.
           </p>
         </div>
-        <p className="text-base text-zinc-300">
-          副業したい。。。
-        </p>
+        {authorOneLiner && (
+          <p className="text-base text-zinc-300">
+            {authorOneLiner}
+          </p>
+        )}
         {zennUsername && (
           <div className="flex flex-wrap gap-4 pt-4">
             <a

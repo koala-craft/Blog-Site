@@ -1,4 +1,4 @@
-// @ts-nocheck - ルートローダーの型が routeTree.gen に含まれないため
+// @ts-nocheck
 import { Link, useLoaderData } from '@tanstack/react-router'
 
 export function Footer() {

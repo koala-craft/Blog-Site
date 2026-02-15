@@ -40,6 +40,7 @@ export type SetConfigInput = {
   site_title?: string
   site_subtitle?: string
   author_icon?: string
+  author_one_liner?: string
 }
 
 export const setConfig = createServerFn({ method: 'POST' })
@@ -87,6 +88,7 @@ export const setConfig = createServerFn({ method: 'POST' })
       site_title: typeof data.site_title === 'string' ? data.site_title.trim() : current.site_title ?? '',
       site_subtitle: typeof data.site_subtitle === 'string' ? data.site_subtitle.trim() : current.site_subtitle ?? '',
       author_icon: typeof data.author_icon === 'string' ? data.author_icon.trim() : current.author_icon ?? '',
+      author_one_liner: typeof data.author_one_liner === 'string' ? data.author_one_liner.trim() : current.author_one_liner ?? '',
     }
 
     const content = JSON.stringify(config, null, 2)

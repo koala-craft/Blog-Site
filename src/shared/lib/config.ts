@@ -24,6 +24,8 @@ export interface AppConfig {
   site_subtitle?: string
   /** 作者アイコン URL（raw.githubusercontent.com） */
   author_icon?: string
+  /** Author ページの作者名下に表示するひとこと */
+  author_one_liner?: string
 }
 
 const CONFIG_PATHS = ['.obsidian-log/config.json', 'content/.obsidian-log/config.json']
@@ -66,6 +68,7 @@ function parseConfigJson(raw: string): AppConfig {
       site_title: typeof parsed.site_title === 'string' ? parsed.site_title : '',
       site_subtitle: typeof parsed.site_subtitle === 'string' ? parsed.site_subtitle : '',
       author_icon: typeof parsed.author_icon === 'string' ? parsed.author_icon.trim() : '',
+      author_one_liner: typeof parsed.author_one_liner === 'string' ? parsed.author_one_liner.trim() : '',
     }
   } catch {
     return { ...DEFAULT_CONFIG }
